@@ -25,13 +25,6 @@ public class BaseResponse<T> {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T response;
 
-//    public BaseResponse(LocalDateTime time, T response, Boolean isSuccess, HttpStatus httpStatus) {
-//        this.time = time;
-//        this.response = response;
-//        this.isSuccess = isSuccess;
-//        this.httpStatus = httpStatus;
-//    }
-
     public static <T> BaseResponse<T> successOf(final T response) {
         return BaseResponse.<T>builder()
                 .httpStatus(HttpStatus.OK)

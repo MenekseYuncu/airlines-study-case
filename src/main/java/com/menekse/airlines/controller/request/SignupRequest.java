@@ -11,7 +11,6 @@ public record SignupRequest(
         String firstName,
         @NotNull
         String lastName,
-        @NotNull
         Long cityId
 ) {
 }

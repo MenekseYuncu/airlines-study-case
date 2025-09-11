@@ -2,7 +2,7 @@ package com.menekse.airlines.service.impl;
 
 import com.menekse.airlines.controller.request.LoginRequest;
 import com.menekse.airlines.controller.request.SignupRequest;
-import com.menekse.airlines.controller.response.UserCreateResponse;
+import com.menekse.airlines.controller.response.AuthenticationResponse;
 import com.menekse.airlines.exception.AuthenticationFailedException;
 import com.menekse.airlines.exception.CityNotFoundException;
 import com.menekse.airlines.exception.RoleNotFoundException;
@@ -15,9 +15,13 @@ import com.menekse.airlines.repository.CityRepository;
 import com.menekse.airlines.repository.RoleRepository;
 import com.menekse.airlines.repository.UserRepository;
 import com.menekse.airlines.service.AuthService;
+import com.menekse.airlines.util.JwtUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,10 +36,11 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final CityRepository cityRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
     @Override
     @Transactional
-    public UserCreateResponse register(SignupRequest signupRequest) {
+    public AuthenticationResponse register(SignupRequest signupRequest) {
         if (userRepository.findByUsername(signupRequest.username()).isPresent()) {
             throw new UserNameAlreadyExistException();
         }
@@ -58,7 +63,7 @@ public class AuthServiceImpl implements AuthService {
 
         UserEntity savedUser = userRepository.save(user);
 
-        return UserCreateResponse.builder()
+        return AuthenticationResponse.builder()
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
                 .roles(List.of(savedUser.getRole().getName()))
@@ -69,15 +74,30 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void login(LoginRequest loginRequest) {
-        String username = loginRequest.username();
-        String password = loginRequest.password();
-
-        UserEntity user = userRepository.findByUsername(username)
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+        UserEntity user = userRepository.findByUsername(loginRequest.username())
                 .orElseThrow(AuthenticationFailedException::new);
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
             throw new AuthenticationFailedException();
         }
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getUsername(),
+                null,
+                List.of(new SimpleGrantedAuthority(user.getRole().getName()))
+        );
+
+        String token = jwtUtils.generateJwtToken(authentication);
+
+        return AuthenticationResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .roles(List.of(user.getRole().getName()))
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .status(user.getStatus())
+                .accessToken(token)
+                .build();
     }
 }

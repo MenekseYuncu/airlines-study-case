@@ -4,7 +4,7 @@ package com.menekse.airlines.controller;
 import com.menekse.airlines.common.response.BaseResponse;
 import com.menekse.airlines.controller.request.LoginRequest;
 import com.menekse.airlines.controller.request.SignupRequest;
-import com.menekse.airlines.controller.response.UserCreateResponse;
+import com.menekse.airlines.controller.response.AuthenticationResponse;
 import com.menekse.airlines.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,19 +23,19 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public BaseResponse<UserCreateResponse> register(
+    public BaseResponse<AuthenticationResponse> register(
             @Valid @RequestBody final SignupRequest signupRequest
     ) {
-        UserCreateResponse response = authService.register(signupRequest);
+        AuthenticationResponse response = authService.register(signupRequest);
         return BaseResponse.successOf(response);
     }
 
     @PostMapping("/login")
-    public BaseResponse<Void> login(
+    public BaseResponse<AuthenticationResponse> login(
             @Valid @RequestBody final LoginRequest loginRequest
     ) {
-        authService.login(loginRequest);
-        return BaseResponse.SUCCESS;
+        AuthenticationResponse authenticationResponse = authService.login(loginRequest);
+        return BaseResponse.successOf(authenticationResponse);
     }
 
 }

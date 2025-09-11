@@ -6,12 +6,13 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record UserCreateResponse(
+public record AuthenticationResponse(
         Long id,
         String username,
         List<String> roles,
         String firstName,
         String lastName,
-        UserStatus status
+        UserStatus status,
+        String accessToken
 ) {
 }

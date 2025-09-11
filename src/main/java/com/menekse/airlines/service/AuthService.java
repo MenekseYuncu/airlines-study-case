@@ -2,12 +2,12 @@ package com.menekse.airlines.service;
 
 import com.menekse.airlines.controller.request.LoginRequest;
 import com.menekse.airlines.controller.request.SignupRequest;
-import com.menekse.airlines.controller.response.UserCreateResponse;
+import com.menekse.airlines.controller.response.AuthenticationResponse;
 
 public interface AuthService {
 
-    UserCreateResponse register(SignupRequest signupRequest);
+    AuthenticationResponse register(SignupRequest signupRequest);
 
-    void login(LoginRequest loginRequest);
+    AuthenticationResponse login(LoginRequest loginRequest);
 
 }
