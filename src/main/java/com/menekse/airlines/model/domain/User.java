@@ -1,7 +1,9 @@
 package com.menekse.airlines.model.domain;
 
 import com.menekse.airlines.model.enums.UserStatus;
+import lombok.Builder;
 
+@Builder
 public record User (
         Long id,
         String username,

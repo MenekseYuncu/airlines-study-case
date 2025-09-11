@@ -1,4 +1,17 @@
 package com.menekse.airlines.controller.request;
 
-public record SignupRequest() {
+import jakarta.validation.constraints.NotNull;
+
+public record SignupRequest(
+        @NotNull
+        String username,
+        @NotNull
+        String password,
+        @NotNull
+        String firstName,
+        @NotNull
+        String lastName,
+        @NotNull
+        Long cityId
+) {
 }
