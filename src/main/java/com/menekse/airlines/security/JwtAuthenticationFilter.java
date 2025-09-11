@@ -1,7 +1,5 @@
-package com.menekse.airlines.config;
+package com.menekse.airlines.security;
 
-import com.menekse.airlines.service.impl.CustomUserDetailsService;
-import com.menekse.airlines.util.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,11 +33,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtUtils.validateJwtToken(token)) {
             String username = jwtUtils.getUsernameFromJwtToken(token);
+
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities());
 
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
@@ -47,4 +48,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-

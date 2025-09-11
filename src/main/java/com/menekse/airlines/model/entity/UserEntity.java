@@ -33,12 +33,16 @@ public class UserEntity extends BaseEntity {
     @JoinColumn(name = "city_id")
     private CityEntity city;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
+
+    public boolean isActive() {
+        return this.status == UserStatus.ACTIVE;
+    }
 
 }

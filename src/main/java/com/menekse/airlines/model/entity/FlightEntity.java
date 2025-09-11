@@ -4,6 +4,7 @@ import com.menekse.airlines.common.BaseEntity;
 import com.menekse.airlines.model.enums.FlightStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
 
 import java.time.LocalDateTime;
 
@@ -42,4 +43,7 @@ public class FlightEntity extends BaseEntity {
     @Column(nullable = false)
     private FlightStatus status = FlightStatus.SCHEDULED;
 
+    @CreatedBy
+    @Column(name = "created_by", nullable = false)
+    private Long createdBy;
 }

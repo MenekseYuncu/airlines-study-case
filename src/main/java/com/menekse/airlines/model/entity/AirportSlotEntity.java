@@ -1,6 +1,7 @@
 package com.menekse.airlines.model.entity;
 
 
+import com.menekse.airlines.common.BaseEntity;
 import com.menekse.airlines.model.enums.SlotType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "od_airport_slot")
-public class AirportSlotEntity {
+public class AirportSlotEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

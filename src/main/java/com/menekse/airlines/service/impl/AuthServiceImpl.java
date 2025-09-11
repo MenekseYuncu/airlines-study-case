@@ -14,8 +14,9 @@ import com.menekse.airlines.model.enums.UserStatus;
 import com.menekse.airlines.repository.CityRepository;
 import com.menekse.airlines.repository.RoleRepository;
 import com.menekse.airlines.repository.UserRepository;
+import com.menekse.airlines.security.CustomUserDetails;
 import com.menekse.airlines.service.AuthService;
-import com.menekse.airlines.util.JwtUtils;
+import com.menekse.airlines.security.JwtUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,10 +83,16 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthenticationFailedException();
         }
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getUsername(),
-                null,
+        CustomUserDetails userDetails = new CustomUserDetails(
+                user,
+                user.getPassword(),
                 List.of(new SimpleGrantedAuthority(user.getRole().getName()))
+        );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
         );
 
         String token = jwtUtils.generateJwtToken(authentication);

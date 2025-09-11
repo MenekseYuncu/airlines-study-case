@@ -1,4 +1,4 @@
-package com.menekse.airlines.config;
+package com.menekse.airlines.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 🔑 CORS buraya eklendi
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/city").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
