@@ -1,6 +1,7 @@
 package com.menekse.airlines.service.impl;
 
 import com.menekse.airlines.controller.request.CreateFlightRequest;
+import com.menekse.airlines.controller.request.FlightSearchRequest;
 import com.menekse.airlines.exception.ArrivalCityNotFoundException;
 import com.menekse.airlines.exception.DepartureCityNotFoundException;
 import com.menekse.airlines.exception.SlotAlreadyExistException;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -33,6 +35,39 @@ public class FlightServiceImpl implements FlightService {
     private final FlightRepository flightRepository;
     private final CityRepository cityRepository;
     private final AirportSlotRepository slotRepository;
+
+
+    @Override
+    public List<Flight> getAllFlights() {
+        List<FlightEntity> flightEntities = flightRepository.findAllByOrderByDepartureTimeAsc();
+        return flightEntityToDomainMapper.map(flightEntities);
+    }
+
+
+    @Override
+    public List<Flight> getFlightsByCity(Long cityId) {
+        List<FlightEntity> flightEntities = flightRepository.findByDepartureCityIdOrArrivalCityIdOrderByDepartureTimeAsc(
+                cityId, cityId);
+        return flightEntityToDomainMapper.map(flightEntities);
+    }
+
+
+    @Override
+    public List<Flight> searchFlights(FlightSearchRequest request) {
+        if (request.departureCityId() == null &&
+                request.arrivalCityId() == null &&
+                request.flightDate() == null) {
+            return Collections.emptyList();
+        }
+
+        List<FlightEntity> flightEntities = flightRepository.searchFlights(
+                request.departureCityId(),
+                request.arrivalCityId(),
+                request.flightDate()
+        );
+        return flightEntityToDomainMapper.map(flightEntities);
+    }
+
 
     @Override
     @Transactional
@@ -66,6 +101,10 @@ public class FlightServiceImpl implements FlightService {
         if (request.departureTime().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Departure time cannot be in the past");
         }
+
+        if (request.departureCityId().equals(request.arrivalCityId())) {
+            throw new IllegalArgumentException("Departure and arrival cities cannot be the same");
+        }
     }
 
     private void validateSlotAvailability(Long cityId, LocalDateTime slotTime) {
@@ -83,7 +122,7 @@ public class FlightServiceImpl implements FlightService {
                                            CityEntity arrivalCity,
                                            Long userId) {
         return FlightEntity.builder()
-                .flightNumber(request.flightNumber())
+                .flightNumber(generateFlightNumber())
                 .departureCity(departureCity)
                 .arrivalCity(arrivalCity)
                 .departureTime(request.departureTime())
@@ -93,12 +132,17 @@ public class FlightServiceImpl implements FlightService {
                 .build();
     }
 
+    private String generateFlightNumber() {
+        return "TK-" + (1000 + (int) (Math.random() * 9000));
+    }
+
     private void createAndSaveSlots(FlightEntity flight,
                                     CityEntity departureCity,
                                     CityEntity arrivalCity,
                                     LocalDateTime departureTime,
                                     LocalDateTime arrivalTime) {
         AirportSlotEntity departureSlot = buildSlot(departureCity, flight, departureTime, SlotType.DEPARTURE);
+
         AirportSlotEntity arrivalSlot = buildSlot(arrivalCity, flight, arrivalTime, SlotType.ARRIVAL);
 
         slotRepository.saveAll(List.of(departureSlot, arrivalSlot));
@@ -115,4 +159,5 @@ public class FlightServiceImpl implements FlightService {
                 .slotType(slotType)
                 .build();
     }
+
 }
