@@ -6,7 +6,12 @@ import com.menekse.airlines.controller.request.CreateFlightRequest;
 import com.menekse.airlines.controller.request.FlightSearchRequest;
 import com.menekse.airlines.model.domain.Flight;
 import com.menekse.airlines.service.FlightService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +29,12 @@ public class FlightController {
 
     @GetMapping("/flights")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<List<Flight>> getAllFlights() {
-        List<Flight> flights = flightService.getAllFlights();
+    public BaseResponse<Page<Flight>> getAllFlights(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Flight> flights = flightService.getAllFlights(pageable);
         return BaseResponse.successOf(flights);
     }
 
@@ -38,26 +47,31 @@ public class FlightController {
 
     @GetMapping("/flights/departure/{cityId}")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<List<Flight>> getFlightsByDepartureCity(@PathVariable Long cityId) {
-        List<Flight> flights = flightService.getFlightsByDepartureCity(cityId);
+    public BaseResponse<Page<Flight>> getFlightsByDepartureCity(
+            @PathVariable Long cityId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("departureTime").ascending());
+        Page<Flight> flights = flightService.getFlightsByDepartureCity(cityId, pageable);
         return BaseResponse.successOf(flights);
     }
 
-    @GetMapping("/search")
+    @GetMapping("/flights/search")
     @PreAuthorize("isAuthenticated()")
-    public BaseResponse<List<Flight>> searchFlights(
+    public BaseResponse<Page<Flight>> searchFlights(
             @RequestParam(required = false) Long departureCityId,
             @RequestParam(required = false) Long arrivalCityId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate flightDate) {
-
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate flightDate,
+            Pageable pageable) {
         FlightSearchRequest request = new FlightSearchRequest(departureCityId, arrivalCityId, flightDate);
-        List<Flight> flights = flightService.searchFlights(request);
+        Page<Flight> flights = flightService.searchFlights(request, pageable);
         return BaseResponse.successOf(flights);
     }
 
     @PostMapping("/admin/flight")
     @PreAuthorize("hasRole('ADMIN')")
-    public BaseResponse<Flight> createFlight(@RequestBody final CreateFlightRequest request) {
+    public BaseResponse<Flight> createFlight(@Valid @RequestBody final CreateFlightRequest request) {
         Flight flight = flightService.createFlight(request);
         return BaseResponse.successOf(flight);
     }

@@ -32,7 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/flights",
                                 "/api/flights/city/**",
-                                "/api/search",
+                                "/api/flights/search",
                                 "/api/flights/departure/{cityId}"
                         ).hasAnyRole("USER","ADMIN")
                         .anyRequest().authenticated()

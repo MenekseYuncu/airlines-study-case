@@ -18,11 +18,12 @@ import com.menekse.airlines.repository.FlightRepository;
 import com.menekse.airlines.security.JwtUtils;
 import com.menekse.airlines.service.FlightService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -38,11 +39,10 @@ public class FlightServiceImpl implements FlightService {
 
 
     @Override
-    public List<Flight> getAllFlights() {
-        List<FlightEntity> flightEntities = flightRepository.findAllByOrderByDepartureTimeAsc();
-        return flightEntityToDomainMapper.map(flightEntities);
+    public Page<Flight> getAllFlights(Pageable pageable) {
+        Page<FlightEntity> flightEntities = flightRepository.findAllByOrderByDepartureTimeDesc(pageable);
+        return flightEntities.map(flightEntityToDomainMapper::map);
     }
-
 
     @Override
     public List<Flight> getFlightsByCity(Long cityId) {
@@ -52,26 +52,30 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
-    public List<Flight> getFlightsByDepartureCity(Long cityId) {
-        List<FlightEntity> flightEntities = flightRepository.findByDepartureCityIdOrderByDepartureTimeAsc(cityId);
-        return flightEntityToDomainMapper.map(flightEntities);
+    public Page<Flight> getFlightsByDepartureCity(Long cityId, Pageable pageable) {
+        Page<FlightEntity> flightEntities = flightRepository.findByDepartureCityIdAndDepartureTimeAfterOrderByDepartureTimeAsc(
+                cityId,
+                LocalDateTime.now(),
+                pageable
+        );
+        return flightEntities.map(flightEntityToDomainMapper::map);
     }
 
 
     @Override
-    public List<Flight> searchFlights(FlightSearchRequest request) {
+    public Page<Flight> searchFlights(FlightSearchRequest request, Pageable pageable) {
         if (request.departureCityId() == null &&
                 request.arrivalCityId() == null &&
                 request.flightDate() == null) {
-            return Collections.emptyList();
+            return Page.empty();
         }
-
-        List<FlightEntity> flightEntities = flightRepository.searchFlights(
+        Page<FlightEntity> flightEntities = flightRepository.searchFlights(
                 request.departureCityId(),
                 request.arrivalCityId(),
-                request.flightDate()
+                request.flightDate(),
+                pageable
         );
-        return flightEntityToDomainMapper.map(flightEntities);
+        return flightEntities.map(flightEntityToDomainMapper::map);
     }
 
 
