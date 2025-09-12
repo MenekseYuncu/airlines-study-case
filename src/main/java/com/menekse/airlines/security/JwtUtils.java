@@ -11,9 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 @Component
 @Slf4j
@@ -24,6 +22,38 @@ public class JwtUtils {
 
     @Value("${airlines.security.jwt.expiration}")
     private int jwtExpirationMs;
+
+    public static Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new SecurityException("User not authenticated");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUserId();
+        }
+
+        throw new SecurityException("Unexpected principal type: " + principal.getClass().getName());
+    }
+
+    public static CustomUserDetails getCurrentUserDetails() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new SecurityException("User not authenticated");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof CustomUserDetails) {
+            return (CustomUserDetails) principal;
+        }
+
+        throw new SecurityException("Unexpected principal type: " + principal.getClass().getName());
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
@@ -66,24 +96,6 @@ public class JwtUtils {
                 .getSubject();
     }
 
-    public List<String> getRolesFromJwtToken(String token) {
-        Claims claims = getAllClaimsFromToken(token);
-
-        @SuppressWarnings("unchecked")
-        List<String> roles = (List<String>) claims.get("roles");
-
-        return roles != null ? roles : Collections.emptyList();
-    }
-
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
-
-
     public boolean validateJwtToken(String authToken) {
         try {
             Jwts.parserBuilder()
@@ -105,40 +117,4 @@ public class JwtUtils {
         return false;
     }
 
-
-    public static Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new SecurityException("User not authenticated");
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof CustomUserDetails) {
-            return ((CustomUserDetails) principal).getUserId();
-        }
-
-        throw new SecurityException("Unexpected principal type: " + principal.getClass().getName());
-    }
-
-    public static CustomUserDetails getCurrentUserDetails() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new SecurityException("User not authenticated");
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof CustomUserDetails) {
-            return (CustomUserDetails) principal;
-        }
-
-        throw new SecurityException("Unexpected principal type: " + principal.getClass().getName());
-    }
-
-    public static String getCurrentUsername() {
-        return getCurrentUserDetails().getUsername();
-    }
 }
