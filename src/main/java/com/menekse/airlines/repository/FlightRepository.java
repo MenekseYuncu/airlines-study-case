@@ -24,4 +24,6 @@ public interface FlightRepository extends JpaRepository<FlightEntity, String> {
     List<FlightEntity> findAllByOrderByDepartureTimeAsc();
 
     List<FlightEntity> findByDepartureCityIdOrArrivalCityIdOrderByDepartureTimeAsc(Long departureCityId, Long arrivalCityId);
+
+    List<FlightEntity> findByDepartureCityIdOrderByDepartureTimeAsc(Long departureCityId);
 }

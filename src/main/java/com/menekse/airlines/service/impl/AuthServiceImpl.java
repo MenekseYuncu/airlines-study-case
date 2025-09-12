@@ -7,6 +7,8 @@ import com.menekse.airlines.exception.AuthenticationFailedException;
 import com.menekse.airlines.exception.CityNotFoundException;
 import com.menekse.airlines.exception.RoleNotFoundException;
 import com.menekse.airlines.exception.UserNameAlreadyExistException;
+import com.menekse.airlines.mapper.UserEntityToUserMapper;
+import com.menekse.airlines.model.domain.User;
 import com.menekse.airlines.model.entity.CityEntity;
 import com.menekse.airlines.model.entity.RoleEntity;
 import com.menekse.airlines.model.entity.UserEntity;
@@ -33,6 +35,7 @@ import java.util.List;
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
+    private final UserEntityToUserMapper userEntityToUserMapper = UserEntityToUserMapper.INSTANCE;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final CityRepository cityRepository;
@@ -76,17 +79,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthenticationResponse login(LoginRequest loginRequest) {
-        UserEntity user = userRepository.findByUsername(loginRequest.username())
+        UserEntity userEntity = userRepository.findByUsername(loginRequest.username())
                 .orElseThrow(AuthenticationFailedException::new);
 
-        if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.password(), userEntity.getPassword())) {
             throw new AuthenticationFailedException();
         }
 
         CustomUserDetails userDetails = new CustomUserDetails(
-                user,
-                user.getPassword(),
-                List.of(new SimpleGrantedAuthority(user.getRole().getName()))
+                userEntity,
+                userEntity.getPassword(),
+                List.of(new SimpleGrantedAuthority(userEntity.getRole().getName()))
         );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -97,13 +100,15 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtils.generateJwtToken(authentication);
 
+        User user = userEntityToUserMapper.map(userEntity);
         return AuthenticationResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .roles(List.of(user.getRole().getName()))
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .status(user.getStatus())
+                .id(user.id())
+                .username(user.username())
+                .roles(List.of(user.role().name()))
+                .firstName(user.firstName())
+                .lastName(user.lastName())
+                .status(user.status())
+                .city(user.city())
                 .accessToken(token)
                 .build();
     }

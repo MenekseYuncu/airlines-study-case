@@ -12,6 +12,8 @@ public interface FlightService {
 
     List<Flight> getFlightsByCity(Long cityId);
 
+    List<Flight> getFlightsByDepartureCity(Long cityId);
+
     List<Flight> searchFlights(FlightSearchRequest request);
 
     Flight createFlight(CreateFlightRequest request);

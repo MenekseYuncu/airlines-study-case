@@ -23,21 +23,28 @@ public class FlightController {
 
 
     @GetMapping("/flights")
-    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @PreAuthorize("isAuthenticated()")
     public BaseResponse<List<Flight>> getAllFlights() {
         List<Flight> flights = flightService.getAllFlights();
         return BaseResponse.successOf(flights);
     }
 
-    @GetMapping("/admin/flights/city/{cityId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/flights/city/{cityId}")
+    @PreAuthorize("isAuthenticated()")
     public BaseResponse<List<Flight>> getFlightsByCity(@PathVariable Long cityId) {
         List<Flight> flights = flightService.getFlightsByCity(cityId);
         return BaseResponse.successOf(flights);
     }
 
+    @GetMapping("/flights/departure/{cityId}")
+    @PreAuthorize("isAuthenticated()")
+    public BaseResponse<List<Flight>> getFlightsByDepartureCity(@PathVariable Long cityId) {
+        List<Flight> flights = flightService.getFlightsByDepartureCity(cityId);
+        return BaseResponse.successOf(flights);
+    }
+
     @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    @PreAuthorize("isAuthenticated()")
     public BaseResponse<List<Flight>> searchFlights(
             @RequestParam(required = false) Long departureCityId,
             @RequestParam(required = false) Long arrivalCityId,

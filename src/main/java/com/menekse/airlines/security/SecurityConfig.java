@@ -25,18 +25,23 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 🔑 CORS buraya eklendi
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/cities").permitAll()
-                        .requestMatchers("/api/user/me").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/user/me").hasAnyRole("USER","ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/flights",
+                                "/api/flights/city/**",
+                                "/api/search",
+                                "/api/flights/departure/{cityId}"
+                        ).hasAnyRole("USER","ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

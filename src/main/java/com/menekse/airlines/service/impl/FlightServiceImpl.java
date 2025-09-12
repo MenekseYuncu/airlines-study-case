@@ -51,6 +51,12 @@ public class FlightServiceImpl implements FlightService {
         return flightEntityToDomainMapper.map(flightEntities);
     }
 
+    @Override
+    public List<Flight> getFlightsByDepartureCity(Long cityId) {
+        List<FlightEntity> flightEntities = flightRepository.findByDepartureCityIdOrderByDepartureTimeAsc(cityId);
+        return flightEntityToDomainMapper.map(flightEntities);
+    }
+
 
     @Override
     public List<Flight> searchFlights(FlightSearchRequest request) {
